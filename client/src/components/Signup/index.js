@@ -11,6 +11,8 @@ function Signup(props) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirm, setConfirm] = useState("");
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     const handleChange = setter => e =>  {
         setter(e.target.value);
@@ -18,7 +20,7 @@ function Signup(props) {
 
     const submit = async (e) => {
         e.preventDefault();
-
+        setLoading(true);
         try {
             const requestBody = {
                 query: `mutation {
@@ -37,9 +39,12 @@ function Signup(props) {
             const { data } = await axios.post('http://localhost:3001/graphql', requestBody);
 
             if (data.errors) {
-                console.log(data.errors[0].message);
+                setError(data.errors[0].message);
+                setLoading(false);
             }
             else {
+                setError(null);
+                setLoading(false);
                 const { _id, token } = await data.data.createUser;
 
                 // dispatch value and set new value for the authUser
@@ -61,6 +66,7 @@ function Signup(props) {
         }
         catch (e) {
             console.log(e);
+            setLoading(false);
         }
     }
 
@@ -72,7 +78,8 @@ function Signup(props) {
                     <input className="form-input" type="email" placeholder="Email" value={email} onChange={handleChange(setEmail)} />
                     <input className="form-input" type="password" placeholder="Password" value={password} onChange={handleChange(setPassword)} />
                     <input className="form-input" type="password" placeholder="Confirm Password" value={confirm} onChange={handleChange(setConfirm)} />
-                    <input className="form-submit" type="submit" value="Register" />
+                    <div><span style={{ color: "red" }}>{ error || "" }</span></div>
+                    <input className="form-submit" type="submit" value={loading ? "Verifying..." : "Register"} />
                 </form>
             </div>
         </>
